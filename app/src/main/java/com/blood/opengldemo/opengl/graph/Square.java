@@ -1,4 +1,4 @@
-package com.blood.opengldemo.graph;
+package com.blood.opengldemo.opengl.graph;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

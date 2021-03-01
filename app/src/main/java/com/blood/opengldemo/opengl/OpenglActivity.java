@@ -1,4 +1,4 @@
-package com.blood.opengldemo;
+package com.blood.opengldemo.opengl;
 
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
@@ -7,23 +7,24 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 
-import com.blood.opengldemo.databinding.ActivityMainBinding;
-import com.blood.opengldemo.graph.Triangle;
+import com.blood.opengldemo.R;
+import com.blood.opengldemo.databinding.ActivityOpenglBinding;
+import com.blood.opengldemo.opengl.graph.Triangle;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import static android.opengl.GLSurfaceView.RENDERMODE_CONTINUOUSLY;
 
-public class MainActivity extends AppCompatActivity implements GLSurfaceView.Renderer {
+public class OpenglActivity extends AppCompatActivity implements GLSurfaceView.Renderer {
 
-    private ActivityMainBinding mBinding;
+    private ActivityOpenglBinding mBinding;
     private Triangle mTriangle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_opengl);
         mBinding.glSurface.setEGLContextClientVersion(2);
         mBinding.glSurface.setRenderer(this);
         mBinding.glSurface.setRenderMode(RENDERMODE_CONTINUOUSLY);
@@ -59,4 +60,5 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         // 绘制三角形
         mTriangle.draw();
     }
+
 }

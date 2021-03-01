@@ -1,8 +1,8 @@
-package com.blood.opengldemo.graph;
+package com.blood.opengldemo.opengl.graph;
 
 import android.opengl.GLES20;
 
-import com.blood.opengldemo.util.GraphUtil;
+import com.blood.opengldemo.opengl.util.GraphUtil;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

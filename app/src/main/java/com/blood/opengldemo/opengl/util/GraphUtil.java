@@ -1,4 +1,4 @@
-package com.blood.opengldemo.util;
+package com.blood.opengldemo.opengl.util;
 
 import android.opengl.GLES20;
 
