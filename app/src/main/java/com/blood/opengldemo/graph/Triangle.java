@@ -12,22 +12,23 @@ public class Triangle {
 
     // number of coordinates per vertex in this array
     private static final int COORDS_PER_VERTEX = 3;
-    private static float triangleCoords[] = {   // in counterclockwise order:
+
+    private static final float[] triangleCoords = {   // in counterclockwise order:
             0.0f, 0.5f, 0.0f, // top
             -0.5f, -0.5f, 0.0f, // bottom left
             0.5f, -0.5f, 0.0f  // bottom right
     };
 
     // Set color with red, green, blue and alpha (opacity) values
-    private float color[] = {255, 0, 0, 1.0f};
+    private final float[] color = {255, 0, 0, 1.0f};
 
-    private final String vertexShaderCode =
+    private static final String vertexShaderCode =
             "attribute vec4 vPosition;" +
                     "void main() {" +
                     "  gl_Position = vPosition;" +
                     "}";
 
-    private final String fragmentShaderCode =
+    private static final String fragmentShaderCode =
             "precision mediump float;" +
                     "uniform vec4 vColor;" +
                     "void main() {" +
@@ -81,9 +82,14 @@ public class Triangle {
         GLES20.glEnableVertexAttribArray(mPositionHandle);
 
         //准备三角形坐标数据
-        GLES20.glVertexAttribPointer(mPositionHandle, COORDS_PER_VERTEX,
-                GLES20.GL_FLOAT, false,
-                vertexStride, vertexBuffer);
+        GLES20.glVertexAttribPointer(
+                mPositionHandle,
+                COORDS_PER_VERTEX,
+                GLES20.GL_FLOAT,
+                false,
+                vertexStride,
+                vertexBuffer
+        );
 
         // 获取片段着色器的颜色的句柄
         mColorHandle = GLES20.glGetUniformLocation(mProgram, "vColor");
