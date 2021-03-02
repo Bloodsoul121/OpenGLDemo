@@ -6,7 +6,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <android.opengl.GLSurfaceView
+        <com.blood.opengldemo.camera_filter.CameraView
             android:id="@+id/gl_surface"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

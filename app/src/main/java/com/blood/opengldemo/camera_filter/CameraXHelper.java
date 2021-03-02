@@ -6,20 +6,20 @@ import androidx.camera.core.CameraX;
 import androidx.camera.core.Preview;
 import androidx.camera.core.PreviewConfig;
 import androidx.camera.core.UseCase;
-import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.LifecycleOwner;
 
 public class CameraXHelper {
 
-    private final FragmentActivity mActivity;
+    private final LifecycleOwner mLifecycleOwner;
     private final Preview.OnPreviewOutputUpdateListener mListener;
 
-    public CameraXHelper(FragmentActivity activity, Preview.OnPreviewOutputUpdateListener listener) {
-        mActivity = activity;
+    public CameraXHelper(LifecycleOwner lifecycleOwner, Preview.OnPreviewOutputUpdateListener listener) {
+        mLifecycleOwner = lifecycleOwner;
         mListener = listener;
     }
 
     public void openCamera() {
-        CameraX.bindToLifecycle(mActivity, getPreView());
+        CameraX.bindToLifecycle(mLifecycleOwner, getPreView());
     }
 
     private UseCase getPreView() {

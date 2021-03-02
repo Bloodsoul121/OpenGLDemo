@@ -18,9 +18,6 @@ public class CameraFilterActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_camera_filter);
-        mBinding.glSurface.setEGLContextClientVersion(2);
-        mBinding.glSurface.setRenderer(new FilterRender(this));
-        mBinding.glSurface.setRenderMode(RENDERMODE_CONTINUOUSLY);
     }
 
     @Override
