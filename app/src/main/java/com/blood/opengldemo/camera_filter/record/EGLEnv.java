@@ -1,4 +1,4 @@
-package com.blood.opengldemo.camera_filter;
+package com.blood.opengldemo.camera_filter.record;
 
 import android.content.Context;
 import android.opengl.EGL14;
@@ -90,6 +90,7 @@ public class EGLEnv {
     }
 
     public void draw(int textureId, long timestamp) {
+        // 这个可以理解为绘制到surface上吗？然后就相当于传到MediaCodec中去编码
         mScreenFilter.onDraw(textureId);
         // 给帧缓冲   时间戳
         EGLExt.eglPresentationTimeANDROID(mEglDisplay, mEglSurface, timestamp);

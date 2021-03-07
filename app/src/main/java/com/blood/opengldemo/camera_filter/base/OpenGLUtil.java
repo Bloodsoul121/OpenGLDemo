@@ -1,4 +1,4 @@
-package com.blood.opengldemo.camera_filter;
+package com.blood.opengldemo.camera_filter.base;
 
 import android.content.Context;
 import android.opengl.GLES20;

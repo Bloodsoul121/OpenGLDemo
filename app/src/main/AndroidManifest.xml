@@ -16,7 +16,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.OpenGLDemo">
-        <activity android:name=".camera_filter.CameraFilterActivity" />
+        <activity android:name=".camera_filter.base.CameraFilterActivity" />
         <activity android:name=".opengl.OpenglActivity" />
         <activity android:name=".main.MainActivity">
             <intent-filter>

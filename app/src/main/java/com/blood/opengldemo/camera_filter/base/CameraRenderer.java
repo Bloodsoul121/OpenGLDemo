@@ -1,4 +1,4 @@
-package com.blood.opengldemo.camera_filter;
+package com.blood.opengldemo.camera_filter.base;
 
 import android.content.Context;
 import android.graphics.SurfaceTexture;
@@ -10,7 +10,10 @@ import androidx.lifecycle.LifecycleOwner;
 
 import com.blood.opengldemo.camera_filter.filter.CameraFilter;
 import com.blood.opengldemo.camera_filter.filter.RecordFilter;
+import com.blood.opengldemo.camera_filter.record.MediaRecorder;
+import com.blood.opengldemo.camera_filter.view.CameraView;
 import com.blood.opengldemo.util.LogUtil;
+import com.blood.opengldemo.util.ToastUtil;
 
 import java.io.File;
 
@@ -18,6 +21,8 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreviewOutputUpdateListener, SurfaceTexture.OnFrameAvailableListener {
+
+    private String mFileName = "filter_record.mp4";
 
     private final CameraXHelper mCameraXHelper;
     private final CameraView mCameraView;
@@ -59,10 +64,18 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
         mRecordFilter = new RecordFilter(mContext);
 
         //录制每一帧数据
-        String path = new File(mContext.getExternalCacheDir(), "filter_record.mp4").getAbsolutePath();
+        File saveFile = new File(mContext.getExternalCacheDir(), mFileName);
+        String savePath = saveFile.getAbsolutePath();
+        if (saveFile.exists()) {
+            boolean delete = saveFile.delete();
+            if (delete) {
+                ToastUtil.toast("删除原有文件 " + savePath);
+            }
+        }
+
         mMediaRecorder = new MediaRecorder(
                 mContext,
-                path,
+                savePath,
                 EGL14.eglGetCurrentContext(),
                 480,
                 640

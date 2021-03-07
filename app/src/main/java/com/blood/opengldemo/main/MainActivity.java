@@ -8,7 +8,7 @@ import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.blood.opengldemo.R;
-import com.blood.opengldemo.camera_filter.CameraFilterActivity;
+import com.blood.opengldemo.camera_filter.base.CameraFilterActivity;
 import com.blood.opengldemo.databinding.ActivityMainBinding;
 import com.blood.opengldemo.opengl.OpenglActivity;
 import com.blood.opengldemo.util.ToastUtil;

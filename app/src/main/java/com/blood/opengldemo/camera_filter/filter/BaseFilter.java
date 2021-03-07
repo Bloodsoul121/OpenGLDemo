@@ -3,7 +3,7 @@ package com.blood.opengldemo.camera_filter.filter;
 import android.content.Context;
 import android.opengl.GLES20;
 
-import com.blood.opengldemo.camera_filter.OpenGLUtil;
+import com.blood.opengldemo.camera_filter.base.OpenGLUtil;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
