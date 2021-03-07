@@ -2,17 +2,22 @@ package com.blood.opengldemo.camera_filter;
 
 import android.content.Context;
 import android.graphics.SurfaceTexture;
+import android.opengl.EGL14;
 import android.opengl.GLSurfaceView;
 
 import androidx.camera.core.Preview;
 import androidx.lifecycle.LifecycleOwner;
 
+import com.blood.opengldemo.camera_filter.filter.CameraFilter;
+import com.blood.opengldemo.camera_filter.filter.RecordFilter;
 import com.blood.opengldemo.util.LogUtil;
+
+import java.io.File;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-public class CameraFilterRender implements GLSurfaceView.Renderer, Preview.OnPreviewOutputUpdateListener, SurfaceTexture.OnFrameAvailableListener {
+public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreviewOutputUpdateListener, SurfaceTexture.OnFrameAvailableListener {
 
     private final CameraXHelper mCameraXHelper;
     private final CameraView mCameraView;
@@ -21,8 +26,10 @@ public class CameraFilterRender implements GLSurfaceView.Renderer, Preview.OnPre
     private SurfaceTexture mCameraTexture;
     private CameraFilter mCameraFilter;
     private final float[] mtx = new float[16];
+    private RecordFilter mRecordFilter;
+    private MediaRecorder mMediaRecorder;
 
-    public CameraFilterRender(CameraView cameraView) {
+    public CameraRenderer(CameraView cameraView) {
         mContext = cameraView.getContext();
         mCameraView = cameraView;
         mCameraXHelper = new CameraXHelper((LifecycleOwner) mContext, this);
@@ -47,6 +54,19 @@ public class CameraFilterRender implements GLSurfaceView.Renderer, Preview.OnPre
 
         //滤镜
         mCameraFilter = new CameraFilter(mContext);
+
+        //将数据渲染到屏幕
+        mRecordFilter = new RecordFilter(mContext);
+
+        //录制每一帧数据
+        String path = new File(mContext.getExternalCacheDir(), "filter_record.mp4").getAbsolutePath();
+        mMediaRecorder = new MediaRecorder(
+                mContext,
+                path,
+                EGL14.eglGetCurrentContext(),
+                480,
+                640
+        );
     }
 
     /**
@@ -59,6 +79,7 @@ public class CameraFilterRender implements GLSurfaceView.Renderer, Preview.OnPre
 
         //宽高
         mCameraFilter.onSizeChanged(width, height);
+        mRecordFilter.onSizeChanged(width, height);
     }
 
     /**
@@ -70,10 +91,17 @@ public class CameraFilterRender implements GLSurfaceView.Renderer, Preview.OnPre
 
         //更新摄像头的数据
         mCameraTexture.updateTexImage();
-
         mCameraTexture.getTransformMatrix(mtx);
         mCameraFilter.setTransformMatrix(mtx);
-        mCameraFilter.onDraw(mTextures[0]);
+
+        // 返回fbo所在的图层，还没显示到屏幕上
+        int texture = mCameraFilter.onDraw(mTextures[0]);
+
+        // 显示到屏幕上
+        texture = mRecordFilter.onDraw(texture);
+
+        // 录制，还是fbo的图层，主动调用opengl方法，必须是在egl环境下，即glthread
+        mMediaRecorder.fireFrame(texture, mCameraTexture.getTimestamp());
     }
 
     @Override
@@ -97,5 +125,13 @@ public class CameraFilterRender implements GLSurfaceView.Renderer, Preview.OnPre
     public void onFrameAvailable(SurfaceTexture surfaceTexture) {
         // 一帧回调时，手动刷新
         mCameraView.requestRender();
+    }
+
+    public void startRecord(float speed) {
+        mMediaRecorder.start(speed);
+    }
+
+    public void stopRecord() {
+        mMediaRecorder.stop();
     }
 }

@@ -1,9 +1,9 @@
-package com.blood.opengldemo.camera_filter;
+package com.blood.opengldemo.camera_filter.filter;
 
 import android.content.Context;
 import android.opengl.GLES20;
 
-import com.blood.opengldemo.R;
+import com.blood.opengldemo.camera_filter.OpenGLUtil;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -12,7 +12,7 @@ import java.nio.FloatBuffer;
 import static android.opengl.GLES20.GL_FLOAT;
 import static android.opengl.GLES20.GL_TEXTURE0;
 
-public class CameraFilter {
+public abstract class BaseFilter {
 
     // 顶点坐标
     float[] VERTEX = {
@@ -30,18 +30,18 @@ public class CameraFilter {
             1.0f, 1.0f
     };
 
-    private float[] mtx;
+//    private float[] mtx;
     private int mWidth;
     private int mHeight;
     private final FloatBuffer mVertexBuffer;
     private final FloatBuffer mTextureBuffer;
-    private final int mProgram;
+    protected final int mProgram;
     private final int mVPosition;
     private final int mVCoord;
     private final int mVTexture;
-    private final int mVMatrix;
+//    private final int mVMatrix;
 
-    public CameraFilter(Context context) {
+    public BaseFilter(Context context, int vertexShaderId, int fragmentShaderId) {
         // 申请gpu内存空间，顶点
         mVertexBuffer = ByteBuffer.allocateDirect(4 * 2 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
         mVertexBuffer.clear();
@@ -53,8 +53,8 @@ public class CameraFilter {
         mTextureBuffer.put(TEXTURE);
 
         // 读取顶点程序和片元程序，本地文件
-        String vertexShader = OpenGLUtil.readRawTextFile(context, R.raw.camera_vert);
-        String fragShader = OpenGLUtil.readRawTextFile(context, R.raw.camera_frag);
+        String vertexShader = OpenGLUtil.readRawTextFile(context, vertexShaderId);
+        String fragShader = OpenGLUtil.readRawTextFile(context, fragmentShaderId);
 
         mProgram = OpenGLUtil.loadProgram(vertexShader, fragShader);
 
@@ -65,7 +65,7 @@ public class CameraFilter {
         //采样点的坐标
         mVTexture = GLES20.glGetUniformLocation(mProgram, "vTexture");
         //变换矩阵， 需要将原本的vCoord（01,11,00,10） 与矩阵相乘
-        mVMatrix = GLES20.glGetUniformLocation(mProgram, "vMatrix");
+//        mVMatrix = GLES20.glGetUniformLocation(mProgram, "vMatrix");
     }
 
     public void onSizeChanged(int width, int height) {
@@ -73,12 +73,12 @@ public class CameraFilter {
         mHeight = height;
     }
 
-    public void setTransformMatrix(float[] mtx) {
-        this.mtx = mtx;
-    }
+//    public void setTransformMatrix(float[] mtx) {
+//        this.mtx = mtx;
+//    }
 
     // 开始渲染
-    public void onDraw(int texture) {
+    public int onDraw(int texture) {
         GLES20.glViewport(0, 0, mWidth, mHeight);
         GLES20.glUseProgram(mProgram);
 
@@ -108,9 +108,18 @@ public class CameraFilter {
         // 第0个图层
         GLES20.glUniform1i(mVTexture, 0);
 
-        GLES20.glUniformMatrix4fv(mVMatrix, 1, false, mtx, 0);
+        beforeDraw();
 
         //通知画画
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
+
+        return texture;
     }
+
+    public void release() {
+        GLES20.glDeleteProgram(mProgram);
+    }
+
+    public abstract void beforeDraw();
+
 }

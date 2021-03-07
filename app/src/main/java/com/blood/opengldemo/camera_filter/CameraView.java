@@ -17,7 +17,7 @@ public class CameraView extends GLSurfaceView {
 
     private void init() {
         setEGLContextClientVersion(2);
-        setRenderer(new CameraFilterRender(this));
+        setRenderer(new CameraRenderer(this));
         //注意必须在setRenderer后面
         setRenderMode(RENDERMODE_CONTINUOUSLY);
     }
