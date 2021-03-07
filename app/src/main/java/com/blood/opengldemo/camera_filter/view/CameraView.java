@@ -64,4 +64,8 @@ public class CameraView extends GLSurfaceView {
         mCameraRenderer.stopRecord();
     }
 
+    public void switchOutH264(boolean isOutH264) {
+        mCameraRenderer.switchOutH264(isOutH264);
+    }
+
 }

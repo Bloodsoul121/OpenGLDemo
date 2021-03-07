@@ -10,6 +10,7 @@ import androidx.lifecycle.LifecycleOwner;
 
 import com.blood.opengldemo.camera_filter.filter.CameraFilter;
 import com.blood.opengldemo.camera_filter.filter.RecordFilter;
+import com.blood.opengldemo.camera_filter.record.H264MediaRecorder;
 import com.blood.opengldemo.camera_filter.record.MediaRecorder;
 import com.blood.opengldemo.camera_filter.view.CameraView;
 import com.blood.opengldemo.util.LogUtil;
@@ -33,6 +34,8 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
     private final float[] mtx = new float[16];
     private RecordFilter mRecordFilter;
     private MediaRecorder mMediaRecorder;
+    private H264MediaRecorder mH264MediaRecorder;
+    private boolean mIsOutH264;
 
     public CameraRenderer(CameraView cameraView) {
         mContext = cameraView.getContext();
@@ -80,6 +83,14 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
                 480,
                 640
         );
+
+        mH264MediaRecorder = new H264MediaRecorder(
+                mContext,
+                savePath,
+                EGL14.eglGetCurrentContext(),
+                480,
+                640
+        );
     }
 
     /**
@@ -114,7 +125,15 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
         texture = mRecordFilter.onDraw(texture);
 
         // 录制，还是fbo的图层，主动调用opengl方法，必须是在egl环境下，即glthread
-        mMediaRecorder.fireFrame(texture, mCameraTexture.getTimestamp());
+        if (mIsOutH264) {
+            if (mH264MediaRecorder != null) {
+                mH264MediaRecorder.fireFrame(texture, mCameraTexture.getTimestamp());
+            }
+        } else {
+            if (mMediaRecorder != null) {
+                mMediaRecorder.fireFrame(texture, mCameraTexture.getTimestamp());
+            }
+        }
     }
 
     @Override
@@ -141,10 +160,22 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
     }
 
     public void startRecord(float speed) {
-        mMediaRecorder.start(speed);
+        if (mIsOutH264) {
+            mH264MediaRecorder.start(speed);
+        } else {
+            mMediaRecorder.start(speed);
+        }
     }
 
     public void stopRecord() {
-        mMediaRecorder.stop();
+        if (mIsOutH264) {
+            mH264MediaRecorder.stop();
+        } else {
+            mMediaRecorder.stop();
+        }
+    }
+
+    public void switchOutH264(boolean isOutH264) {
+        mIsOutH264 = isOutH264;
     }
 }

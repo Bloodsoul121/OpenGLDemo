@@ -16,6 +16,15 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <Button
+            android:id="@+id/outH264"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="outH264"
+            android:textAllCaps="false"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <RadioGroup
             android:id="@+id/rg_speed"
             android:layout_width="wrap_content"
