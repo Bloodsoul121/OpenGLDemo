@@ -3,12 +3,12 @@ package com.blood.opengldemo.camera_filter.filter;
 import android.content.Context;
 import android.opengl.GLES20;
 
-public abstract class FboFilter extends BaseFilter {
+public abstract class BaseFboFilter extends BaseFilter {
 
-    private int[] mFrameBuffers;
-    private int[] mFrameTextures;
+    protected int[] mFrameBuffers;
+    protected int[] mFrameTextures;
 
-    public FboFilter(Context context, int vertexShaderId, int fragmentShaderId) {
+    public BaseFboFilter(Context context, int vertexShaderId, int fragmentShaderId) {
         super(context, vertexShaderId, fragmentShaderId);
     }
 

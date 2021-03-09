@@ -100,12 +100,11 @@ public abstract class BaseFilter {
         GLES20.glVertexAttribPointer(mVCoord, 2, GL_FLOAT, false, 0, mTextureBuffer);
         GLES20.glEnableVertexAttribArray(mVCoord);
 
+        // 激活使用某个图层
         GLES20.glActiveTexture(GL_TEXTURE0);
-
         //生成一个采样
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture);
-
-        // 第0个图层
+        // 第0个图层，赋值给mVTexture
         GLES20.glUniform1i(mVTexture, 0);
 
         beforeDraw();

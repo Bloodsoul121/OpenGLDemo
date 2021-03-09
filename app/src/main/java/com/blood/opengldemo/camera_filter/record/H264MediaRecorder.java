@@ -57,6 +57,11 @@ public class H264MediaRecorder {
         }
     }
 
+    public void onSizeChanged(int width, int height) {
+        mWidth = width;
+        mHeight = height;
+    }
+
     public void start(float speed) {
         initMediaCodec();
         initOpenGlEnv();

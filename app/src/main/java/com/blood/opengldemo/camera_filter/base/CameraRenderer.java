@@ -8,6 +8,7 @@ import android.opengl.GLSurfaceView;
 import androidx.camera.core.Preview;
 import androidx.lifecycle.LifecycleOwner;
 
+import com.blood.opengldemo.camera_filter.filter.BaseFilter;
 import com.blood.opengldemo.camera_filter.filter.CameraFilter;
 import com.blood.opengldemo.camera_filter.filter.RecordFilter;
 import com.blood.opengldemo.camera_filter.record.H264MediaRecorder;
@@ -17,6 +18,8 @@ import com.blood.opengldemo.util.LogUtil;
 import com.blood.opengldemo.util.ToastUtil;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -36,6 +39,8 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
     private MediaRecorder mMediaRecorder;
     private H264MediaRecorder mH264MediaRecorder;
     private boolean mIsOutH264;
+
+    private List<BaseFilter> mFilters = new ArrayList<>();
 
     public CameraRenderer(CameraView cameraView) {
         mContext = cameraView.getContext();
@@ -65,6 +70,9 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
 
         //将数据渲染到屏幕
         mRecordFilter = new RecordFilter(mContext);
+
+        mFilters.add(mCameraFilter);
+        mFilters.add(mRecordFilter);
 
         //录制每一帧数据
         File saveFile = new File(mContext.getExternalCacheDir(), mFileName);
@@ -99,11 +107,15 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
      */
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
-        LogUtil.log("onSurfaceChanged");
+        LogUtil.log("onSurfaceChanged " + width + " " + height);
 
         //宽高
-        mCameraFilter.onSizeChanged(width, height);
-        mRecordFilter.onSizeChanged(width, height);
+//        mCameraFilter.onSizeChanged(width, height);
+//        mRecordFilter.onSizeChanged(width, height);
+
+        for (BaseFilter filter : mFilters) {
+            filter.onSizeChanged(width, height);
+        }
     }
 
     /**
@@ -116,13 +128,24 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
         //更新摄像头的数据
         mCameraTexture.updateTexImage();
         mCameraTexture.getTransformMatrix(mtx);
-        mCameraFilter.setTransformMatrix(mtx);
 
-        // 返回fbo所在的图层，还没显示到屏幕上
-        int texture = mCameraFilter.onDraw(mTextures[0]);
+//        mCameraFilter.setTransformMatrix(mtx);
+//
+//        // 返回fbo所在的图层，还没显示到屏幕上
+//        int texture = mCameraFilter.onDraw(mTextures[0]);
+//
+//        // 显示到屏幕上
+//        texture = mRecordFilter.onDraw(texture);
 
-        // 显示到屏幕上
-        texture = mRecordFilter.onDraw(texture);
+        int texture = 0;
+        for (BaseFilter filter : mFilters) {
+            if (filter instanceof CameraFilter) {
+                ((CameraFilter) filter).setTransformMatrix(mtx);
+                texture = filter.onDraw(mTextures[0]);
+            } else {
+                texture = filter.onDraw(texture);
+            }
+        }
 
         // 录制，还是fbo的图层，主动调用opengl方法，必须是在egl环境下，即glthread
         if (mIsOutH264) {

@@ -40,6 +40,11 @@ public class MediaRecorder {
         mGlContext = glContext;
     }
 
+    public void onSizeChanged(int width, int height) {
+        mWidth = width;
+        mHeight = height;
+    }
+
     public void start(float speed) {
         mSpeed = speed;
         initMediaCodec();

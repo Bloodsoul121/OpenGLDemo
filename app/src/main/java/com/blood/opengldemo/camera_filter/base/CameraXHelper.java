@@ -8,6 +8,8 @@ import androidx.camera.core.PreviewConfig;
 import androidx.camera.core.UseCase;
 import androidx.lifecycle.LifecycleOwner;
 
+import com.blankj.utilcode.util.ScreenUtils;
+
 public class CameraXHelper {
 
     private final LifecycleOwner mLifecycleOwner;
@@ -25,7 +27,7 @@ public class CameraXHelper {
     private UseCase getPreView() {
         // 分辨率并不是最终的分辨率，CameraX会自动根据设备的支持情况，结合你的参数，设置一个最为接近的分辨率
         PreviewConfig previewConfig = new PreviewConfig.Builder()
-                .setTargetResolution(new Size(640, 480))
+                .setTargetResolution(new Size(ScreenUtils.getAppScreenHeight(), ScreenUtils.getAppScreenWidth()))
                 .setLensFacing(CameraX.LensFacing.BACK) //前置或者后置摄像头
                 .build();
         Preview preview = new Preview(previewConfig);

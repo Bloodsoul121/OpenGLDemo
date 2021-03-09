@@ -5,7 +5,7 @@ import android.opengl.GLES20;
 
 import com.blood.opengldemo.R;
 
-public class CameraFilter extends FboFilter {
+public class CameraFilter extends BaseFboFilter {
 
     private final int vMatrix;
     private float[] mtx;
