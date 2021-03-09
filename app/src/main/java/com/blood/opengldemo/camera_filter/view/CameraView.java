@@ -68,4 +68,8 @@ public class CameraView extends GLSurfaceView {
         mCameraRenderer.switchOutH264(isOutH264);
     }
 
+    public void toggleSoulFilter() {
+        mCameraRenderer.toggleSoulFilter();
+    }
+
 }

@@ -30,6 +30,7 @@ public class CameraFilterActivity extends AppCompatActivity implements RecordBut
             mBinding.outH264.setEnabled(false);
             mBinding.cameraView.switchOutH264(true);
         });
+        mBinding.toggleSoul.setOnClickListener(v -> mBinding.cameraView.toggleSoulFilter());
     }
 
 //    @Override

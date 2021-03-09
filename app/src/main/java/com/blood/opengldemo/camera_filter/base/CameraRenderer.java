@@ -11,6 +11,7 @@ import androidx.lifecycle.LifecycleOwner;
 import com.blood.opengldemo.camera_filter.filter.BaseFilter;
 import com.blood.opengldemo.camera_filter.filter.CameraFilter;
 import com.blood.opengldemo.camera_filter.filter.ScreenFilter;
+import com.blood.opengldemo.camera_filter.filter.SoulFilter;
 import com.blood.opengldemo.camera_filter.filter.WarmFilter;
 import com.blood.opengldemo.camera_filter.record.H264MediaRecorder;
 import com.blood.opengldemo.camera_filter.record.MediaRecorder;
@@ -40,9 +41,9 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
     private final float[] mtx = new float[16];
     private MediaRecorder mMediaRecorder;
     private H264MediaRecorder mH264MediaRecorder;
-    private boolean mIsOutH264;
-
     private final List<BaseFilter> mFilters = new ArrayList<>();
+    private boolean mIsOutH264;
+    private boolean mIsSoulFilterOpen;
 
     public CameraRenderer(CameraView cameraView) {
         mContext = cameraView.getContext();
@@ -67,17 +68,29 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
         //监听摄像头数据回调
         mCameraTexture.setOnFrameAvailableListener(this);
 
+        initFilters();
+
+        initMediaRecorder();
+    }
+
+    private void initFilters() {
         //滤镜
         CameraFilter cameraFilter = new CameraFilter(mContext);
         //暖色滤镜
         WarmFilter warmFilter = new WarmFilter(mContext);
+        //灵魂出窍
+        SoulFilter soulFilter = new SoulFilter(mContext);
         //将数据渲染到屏幕
         ScreenFilter screenFilter = new ScreenFilter(mContext);
         //过滤集合
+        mFilters.clear();
         mFilters.add(cameraFilter);
         mFilters.add(warmFilter);
+        mFilters.add(soulFilter);
         mFilters.add(screenFilter);
+    }
 
+    private void initMediaRecorder() {
         //录制每一帧数据
         File saveFile = new File(mContext.getExternalCacheDir(), SAVE_FILE_NAME);
         String savePath = saveFile.getAbsolutePath();
@@ -147,6 +160,9 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
                 ((CameraFilter) filter).setTransformMatrix(mtx);
                 texture = filter.onDraw(mTextures[0]);
             } else {
+                if (!mIsSoulFilterOpen && filter instanceof SoulFilter) {
+                    continue;
+                }
                 texture = filter.onDraw(texture);
             }
         }
@@ -204,5 +220,9 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
 
     public void switchOutH264(boolean isOutH264) {
         mIsOutH264 = isOutH264;
+    }
+
+    public void toggleSoulFilter() {
+        mIsSoulFilterOpen = !mIsSoulFilterOpen;
     }
 }
