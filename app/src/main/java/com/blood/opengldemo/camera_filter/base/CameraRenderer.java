@@ -12,6 +12,7 @@ import com.blood.opengldemo.camera_filter.filter.BaseFilter;
 import com.blood.opengldemo.camera_filter.filter.CameraFilter;
 import com.blood.opengldemo.camera_filter.filter.ScreenFilter;
 import com.blood.opengldemo.camera_filter.filter.SoulFilter;
+import com.blood.opengldemo.camera_filter.filter.Split2Filter;
 import com.blood.opengldemo.camera_filter.filter.WarmFilter;
 import com.blood.opengldemo.camera_filter.record.H264MediaRecorder;
 import com.blood.opengldemo.camera_filter.record.MediaRecorder;
@@ -44,6 +45,7 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
     private final List<BaseFilter> mFilters = new ArrayList<>();
     private boolean mIsOutH264;
     private boolean mIsSoulFilterOpen;
+    private boolean mIsSplit2FilterOpen;
 
     public CameraRenderer(CameraView cameraView) {
         mContext = cameraView.getContext();
@@ -78,6 +80,8 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
         CameraFilter cameraFilter = new CameraFilter(mContext);
         //暖色滤镜
         WarmFilter warmFilter = new WarmFilter(mContext);
+        //分屏2个
+        Split2Filter split2Filter = new Split2Filter(mContext);
         //灵魂出窍
         SoulFilter soulFilter = new SoulFilter(mContext);
         //将数据渲染到屏幕
@@ -86,6 +90,7 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
         mFilters.clear();
         mFilters.add(cameraFilter);
         mFilters.add(warmFilter);
+        mFilters.add(split2Filter);
         mFilters.add(soulFilter);
         mFilters.add(screenFilter);
     }
@@ -163,6 +168,9 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
                 if (!mIsSoulFilterOpen && filter instanceof SoulFilter) {
                     continue;
                 }
+                if (!mIsSplit2FilterOpen && filter instanceof Split2Filter) {
+                    continue;
+                }
                 texture = filter.onDraw(texture);
             }
         }
@@ -224,5 +232,9 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
 
     public void toggleSoulFilter() {
         mIsSoulFilterOpen = !mIsSoulFilterOpen;
+    }
+
+    public void toggleSplit2Filter() {
+        mIsSplit2FilterOpen = !mIsSplit2FilterOpen;
     }
 }

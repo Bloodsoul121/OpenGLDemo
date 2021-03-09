@@ -1,7 +1,6 @@
 package com.blood.opengldemo.camera_filter.base;
 
 import android.os.Bundle;
-import android.view.View;
 import android.widget.RadioGroup;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -31,6 +30,7 @@ public class CameraFilterActivity extends AppCompatActivity implements RecordBut
             mBinding.cameraView.switchOutH264(true);
         });
         mBinding.toggleSoul.setOnClickListener(v -> mBinding.cameraView.toggleSoulFilter());
+        mBinding.toggleSplit2.setOnClickListener(v -> mBinding.cameraView.toggleSplit2Filter());
     }
 
 //    @Override

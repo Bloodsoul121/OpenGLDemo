@@ -72,4 +72,8 @@ public class CameraView extends GLSurfaceView {
         mCameraRenderer.toggleSoulFilter();
     }
 
+    public void toggleSplit2Filter() {
+        mCameraRenderer.toggleSplit2Filter();
+    }
+
 }
