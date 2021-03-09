@@ -11,6 +11,7 @@ import androidx.lifecycle.LifecycleOwner;
 import com.blood.opengldemo.camera_filter.filter.BaseFilter;
 import com.blood.opengldemo.camera_filter.filter.CameraFilter;
 import com.blood.opengldemo.camera_filter.filter.RecordFilter;
+import com.blood.opengldemo.camera_filter.filter.WarmFilter;
 import com.blood.opengldemo.camera_filter.record.H264MediaRecorder;
 import com.blood.opengldemo.camera_filter.record.MediaRecorder;
 import com.blood.opengldemo.camera_filter.view.CameraView;
@@ -24,23 +25,24 @@ import java.util.List;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+/**
+ * 预览拉伸的问题，应该是本身图片撑不满全屏，然后渲染全屏后拉伸
+ */
 public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreviewOutputUpdateListener, SurfaceTexture.OnFrameAvailableListener {
 
-    private String mFileName = "filter_record.mp4";
+    private static final String SAVE_FILE_NAME = "filter_record.mp4";
 
     private final CameraXHelper mCameraXHelper;
     private final CameraView mCameraView;
     private final Context mContext;
     private int[] mTextures;
     private SurfaceTexture mCameraTexture;
-    private CameraFilter mCameraFilter;
     private final float[] mtx = new float[16];
-    private RecordFilter mRecordFilter;
     private MediaRecorder mMediaRecorder;
     private H264MediaRecorder mH264MediaRecorder;
     private boolean mIsOutH264;
 
-    private List<BaseFilter> mFilters = new ArrayList<>();
+    private final List<BaseFilter> mFilters = new ArrayList<>();
 
     public CameraRenderer(CameraView cameraView) {
         mContext = cameraView.getContext();
@@ -66,16 +68,18 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
         mCameraTexture.setOnFrameAvailableListener(this);
 
         //滤镜
-        mCameraFilter = new CameraFilter(mContext);
-
+        CameraFilter cameraFilter = new CameraFilter(mContext);
+        //暖色滤镜
+        WarmFilter warmFilter = new WarmFilter(mContext);
         //将数据渲染到屏幕
-        mRecordFilter = new RecordFilter(mContext);
-
-        mFilters.add(mCameraFilter);
-        mFilters.add(mRecordFilter);
+        RecordFilter recordFilter = new RecordFilter(mContext);
+        //过滤集合
+        mFilters.add(cameraFilter);
+        mFilters.add(warmFilter);
+        mFilters.add(recordFilter);
 
         //录制每一帧数据
-        File saveFile = new File(mContext.getExternalCacheDir(), mFileName);
+        File saveFile = new File(mContext.getExternalCacheDir(), SAVE_FILE_NAME);
         String savePath = saveFile.getAbsolutePath();
         if (saveFile.exists()) {
             boolean delete = saveFile.delete();
@@ -137,7 +141,7 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
 //        // 显示到屏幕上
 //        texture = mRecordFilter.onDraw(texture);
 
-        int texture = 0;
+        int texture = mTextures[0];
         for (BaseFilter filter : mFilters) {
             if (filter instanceof CameraFilter) {
                 ((CameraFilter) filter).setTransformMatrix(mtx);
