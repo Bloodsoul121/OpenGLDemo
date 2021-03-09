@@ -10,7 +10,7 @@ import androidx.lifecycle.LifecycleOwner;
 
 import com.blood.opengldemo.camera_filter.filter.BaseFilter;
 import com.blood.opengldemo.camera_filter.filter.CameraFilter;
-import com.blood.opengldemo.camera_filter.filter.RecordFilter;
+import com.blood.opengldemo.camera_filter.filter.ScreenFilter;
 import com.blood.opengldemo.camera_filter.filter.WarmFilter;
 import com.blood.opengldemo.camera_filter.record.H264MediaRecorder;
 import com.blood.opengldemo.camera_filter.record.MediaRecorder;
@@ -72,11 +72,11 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
         //暖色滤镜
         WarmFilter warmFilter = new WarmFilter(mContext);
         //将数据渲染到屏幕
-        RecordFilter recordFilter = new RecordFilter(mContext);
+        ScreenFilter screenFilter = new ScreenFilter(mContext);
         //过滤集合
         mFilters.add(cameraFilter);
         mFilters.add(warmFilter);
-        mFilters.add(recordFilter);
+        mFilters.add(screenFilter);
 
         //录制每一帧数据
         File saveFile = new File(mContext.getExternalCacheDir(), SAVE_FILE_NAME);

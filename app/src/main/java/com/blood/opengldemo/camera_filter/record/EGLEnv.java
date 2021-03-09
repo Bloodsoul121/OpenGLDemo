@@ -9,7 +9,7 @@ import android.opengl.EGLExt;
 import android.opengl.EGLSurface;
 import android.view.Surface;
 
-import com.blood.opengldemo.camera_filter.filter.ScreenFilter;
+import com.blood.opengldemo.camera_filter.filter.RecordFilter;
 
 /**
  * 配置EGL环境
@@ -20,7 +20,7 @@ public class EGLEnv {
     private final EGLConfig mEglConfig;
     private final EGLContext mEglContext;
     private final EGLSurface mEglSurface;
-    private final ScreenFilter mScreenFilter;
+    private final RecordFilter mRecordFilter;
 
     public EGLEnv(Context context, EGLContext mGlContext, Surface surface, int width, int height) {
 
@@ -85,13 +85,14 @@ public class EGLEnv {
             throw new RuntimeException("EGL error " + EGL14.eglGetError());
         }
 
-        mScreenFilter = new ScreenFilter(context);
-        mScreenFilter.onSizeChanged(width, height);
+        // 将数据渲染到surface中去，即数据源传递数据
+        mRecordFilter = new RecordFilter(context);
+        mRecordFilter.onSizeChanged(width, height);
     }
 
     public void draw(int textureId, long timestamp) {
         // 这个可以理解为绘制到surface上吗？然后就相当于传到MediaCodec中去编码
-        mScreenFilter.onDraw(textureId);
+        mRecordFilter.onDraw(textureId);
         // 给帧缓冲   时间戳
         EGLExt.eglPresentationTimeANDROID(mEglDisplay, mEglSurface, timestamp);
         //EGLSurface是双缓冲模式
@@ -105,7 +106,7 @@ public class EGLEnv {
         EGL14.eglDestroyContext(mEglDisplay, mEglContext);
         EGL14.eglReleaseThread();
         EGL14.eglTerminate(mEglDisplay);
-        mScreenFilter.release();
+        mRecordFilter.release();
     }
 
 }
