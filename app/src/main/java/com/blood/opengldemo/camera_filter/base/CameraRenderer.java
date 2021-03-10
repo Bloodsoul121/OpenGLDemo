@@ -46,7 +46,7 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
     private int[] mTextures;
     private SurfaceTexture mCameraTexture;
     private final float[] mMtx = new float[16];
-    private final float[] mMatrix = new float[16];
+    private final float[] mVertexMatrix = new float[16];
     private final float[] mTextureMatrix = new float[16];
     private MediaRecorder mMediaRecorder;
     private H264MediaRecorder mH264MediaRecorder;
@@ -152,9 +152,9 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
         computeTextureMatrix();
 
         GLES20.glViewport(0, 0, width, height);
-        Matrix.setIdentityM(mMatrix, 0);
-        Matrix.rotateM(mMatrix, 0, 180F, 0F, 1F, 0F);//左右镜像
-        Matrix.rotateM(mMatrix, 0, -90F, 0F, 0F, 1F);//旋转90
+        Matrix.setIdentityM(mVertexMatrix, 0);
+        Matrix.rotateM(mVertexMatrix, 0, 180F, 0F, 1F, 0F);//左右镜像
+        Matrix.rotateM(mVertexMatrix, 0, -90F, 0F, 0F, 1F);//旋转90
 
         //宽高
 //        mCameraFilter.onSizeChanged(width, height);
@@ -203,7 +203,7 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
             if (filter instanceof CameraFilter) {
                 ((CameraFilter) filter).setTransformMatrix(mMtx);
             } else if (filter instanceof CameraAdaptFilter) {
-                ((CameraAdaptFilter) filter).setMatrix(mMatrix);
+                ((CameraAdaptFilter) filter).setVertexMatrix(mVertexMatrix);
                 ((CameraAdaptFilter) filter).setTextureMatrix(mTextureMatrix);
             }
             if (filter instanceof CameraFilter && mIsAdaptFilterOpen) {

@@ -4,8 +4,7 @@ attribute vec4 vPosition;
 //接收纹理坐标，接收采样器采样图片的坐标  camera
 attribute vec4 vCoord;
 
-// oepngl camera
-uniform mat4 vMatrix;
+uniform mat4 vVertexMatrix;
 
 uniform mat4 vTextureMatrix;
 
@@ -19,6 +18,6 @@ void main(){
     //    aCoord = (vMatrix * vCoord).xy;
 
     // 修改一下，做个相机尺寸适配
-    gl_Position = vMatrix * vPosition;
+    gl_Position = vVertexMatrix * vPosition;
     aCoord = (vTextureMatrix * vCoord).xy;
 }
