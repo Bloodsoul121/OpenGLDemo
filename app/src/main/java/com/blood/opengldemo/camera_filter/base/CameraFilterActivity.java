@@ -31,6 +31,7 @@ public class CameraFilterActivity extends AppCompatActivity implements RecordBut
         });
         mBinding.toggleSoul.setOnClickListener(v -> mBinding.cameraView.toggleSoulFilter());
         mBinding.toggleSplit2.setOnClickListener(v -> mBinding.cameraView.toggleSplit2Filter());
+        mBinding.toggleAdapt.setOnClickListener(v -> mBinding.cameraView.toggleAdaptFilter());
     }
 
 //    @Override

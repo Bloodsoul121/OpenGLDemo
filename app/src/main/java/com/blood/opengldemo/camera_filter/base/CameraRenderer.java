@@ -3,12 +3,18 @@ package com.blood.opengldemo.camera_filter.base;
 import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.opengl.EGL14;
+import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
+import android.opengl.Matrix;
+import android.util.Size;
 
 import androidx.camera.core.Preview;
 import androidx.lifecycle.LifecycleOwner;
 
+import com.blankj.utilcode.util.BarUtils;
+import com.blankj.utilcode.util.ScreenUtils;
 import com.blood.opengldemo.camera_filter.filter.BaseFilter;
+import com.blood.opengldemo.camera_filter.filter.CameraAdaptFilter;
 import com.blood.opengldemo.camera_filter.filter.CameraFilter;
 import com.blood.opengldemo.camera_filter.filter.ScreenFilter;
 import com.blood.opengldemo.camera_filter.filter.SoulFilter;
@@ -39,13 +45,20 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
     private final Context mContext;
     private int[] mTextures;
     private SurfaceTexture mCameraTexture;
-    private final float[] mtx = new float[16];
+    private final float[] mMtx = new float[16];
+    private final float[] mMatrix = new float[16];
+    private final float[] mTextureMatrix = new float[16];
     private MediaRecorder mMediaRecorder;
     private H264MediaRecorder mH264MediaRecorder;
     private final List<BaseFilter> mFilters = new ArrayList<>();
     private boolean mIsOutH264;
     private boolean mIsSoulFilterOpen;
     private boolean mIsSplit2FilterOpen;
+    private boolean mIsAdaptFilterOpen;
+    private int mScreenWidth;
+    private int mScreenHeight;
+    private int mCameraWidth;
+    private int mCameraHeight;
 
     public CameraRenderer(CameraView cameraView) {
         mContext = cameraView.getContext();
@@ -78,6 +91,8 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
     private void initFilters() {
         //滤镜
         CameraFilter cameraFilter = new CameraFilter(mContext);
+        //滤镜
+        CameraAdaptFilter cameraAdaptFilter = new CameraAdaptFilter(mContext);
         //暖色滤镜
         WarmFilter warmFilter = new WarmFilter(mContext);
         //分屏2个
@@ -89,6 +104,7 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
         //过滤集合
         mFilters.clear();
         mFilters.add(cameraFilter);
+        mFilters.add(cameraAdaptFilter);
         mFilters.add(warmFilter);
         mFilters.add(split2Filter);
         mFilters.add(soulFilter);
@@ -131,12 +147,33 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         LogUtil.log("onSurfaceChanged " + width + " " + height);
 
+        mScreenWidth = width;
+        mScreenHeight = height;
+        computeTextureMatrix();
+
+        GLES20.glViewport(0, 0, width, height);
+        Matrix.setIdentityM(mMatrix, 0);
+        Matrix.rotateM(mMatrix, 0, 180F, 0F, 1F, 0F);//左右镜像
+        Matrix.rotateM(mMatrix, 0, -90F, 0F, 0F, 1F);//旋转90
+
         //宽高
 //        mCameraFilter.onSizeChanged(width, height);
 //        mRecordFilter.onSizeChanged(width, height);
 
         for (BaseFilter filter : mFilters) {
             filter.onSizeChanged(width, height);
+        }
+    }
+
+    // 适配相机尺寸
+    private void computeTextureMatrix() {
+        float cameraRatio = mCameraWidth * 1.0f / mCameraHeight;
+        float screenRatio = mScreenWidth * 1.0f / mScreenHeight;
+        Matrix.setIdentityM(mTextureMatrix, 0);
+        if (cameraRatio > screenRatio) {
+            Matrix.scaleM(mTextureMatrix, 0, 1F, 1 - ((cameraRatio - screenRatio) / 2), 1F);
+        } else if (cameraRatio < screenRatio) {
+            Matrix.scaleM(mTextureMatrix, 0, 1 - ((screenRatio - cameraRatio) / 2), 1F, 1F);
         }
     }
 
@@ -149,7 +186,9 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
 
         //更新摄像头的数据
         mCameraTexture.updateTexImage();
-        mCameraTexture.getTransformMatrix(mtx);
+
+        //获取纹理矩阵，是为了旋转90度吧
+        mCameraTexture.getTransformMatrix(mMtx);
 
 //        mCameraFilter.setTransformMatrix(mtx);
 //
@@ -162,17 +201,21 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
         int texture = mTextures[0];
         for (BaseFilter filter : mFilters) {
             if (filter instanceof CameraFilter) {
-                ((CameraFilter) filter).setTransformMatrix(mtx);
-                texture = filter.onDraw(mTextures[0]);
-            } else {
-                if (!mIsSoulFilterOpen && filter instanceof SoulFilter) {
-                    continue;
-                }
-                if (!mIsSplit2FilterOpen && filter instanceof Split2Filter) {
-                    continue;
-                }
-                texture = filter.onDraw(texture);
+                ((CameraFilter) filter).setTransformMatrix(mMtx);
+            } else if (filter instanceof CameraAdaptFilter) {
+                ((CameraAdaptFilter) filter).setMatrix(mMatrix);
+                ((CameraAdaptFilter) filter).setTextureMatrix(mTextureMatrix);
             }
+            if (filter instanceof CameraFilter && mIsAdaptFilterOpen) {
+                continue;
+            } else if (filter instanceof CameraAdaptFilter && !mIsAdaptFilterOpen) {
+                continue;
+            } else if (filter instanceof SoulFilter && !mIsSoulFilterOpen) {
+                continue;
+            } else if (filter instanceof Split2Filter && !mIsSplit2FilterOpen) {
+                continue;
+            }
+            texture = filter.onDraw(texture);
         }
 
         // 录制，还是fbo的图层，主动调用opengl方法，必须是在egl环境下，即glthread
@@ -189,7 +232,18 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
 
     @Override
     public void onUpdated(Preview.PreviewOutput output) {
-        LogUtil.log("onUpdated");
+
+        // 输出size大小，相机输出尺寸 1200×1600 与屏幕的尺寸 1080×2175 不匹配
+        Size size = output.getTextureSize();
+        LogUtil.log("onUpdated PreviewOutput size -> " + size.getWidth() + " " + size.getHeight());
+        LogUtil.log("onUpdated screen -> " + ScreenUtils.getAppScreenWidth() + " " + ScreenUtils.getAppScreenHeight());
+        LogUtil.log("onUpdated real screen -> " + ScreenUtils.getScreenWidth() + " " + ScreenUtils.getScreenHeight());
+        int statusBarHeight = BarUtils.getStatusBarHeight();
+        int navBarHeight = BarUtils.getNavBarHeight();
+        LogUtil.log("onUpdated bar height -> " + statusBarHeight + " " + navBarHeight);
+
+        mCameraWidth = size.getWidth();
+        mCameraHeight = size.getHeight();
 
         // 摄像头预览到的数据 在这里
         mCameraTexture = output.getSurfaceTexture();
@@ -236,5 +290,9 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
 
     public void toggleSplit2Filter() {
         mIsSplit2FilterOpen = !mIsSplit2FilterOpen;
+    }
+
+    public void toggleAdaptFilter() {
+        mIsAdaptFilterOpen = !mIsAdaptFilterOpen;
     }
 }
