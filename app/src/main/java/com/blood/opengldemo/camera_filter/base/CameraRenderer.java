@@ -16,10 +16,6 @@ import com.blankj.utilcode.util.ScreenUtils;
 import com.blood.opengldemo.camera_filter.filter.BaseFilter;
 import com.blood.opengldemo.camera_filter.filter.CameraAdaptFilter;
 import com.blood.opengldemo.camera_filter.filter.CameraFilter;
-import com.blood.opengldemo.camera_filter.filter.ScreenFilter;
-import com.blood.opengldemo.camera_filter.filter.SoulFilter;
-import com.blood.opengldemo.camera_filter.filter.Split2Filter;
-import com.blood.opengldemo.camera_filter.filter.WarmFilter;
 import com.blood.opengldemo.camera_filter.record.H264MediaRecorder;
 import com.blood.opengldemo.camera_filter.record.MediaRecorder;
 import com.blood.opengldemo.camera_filter.view.CameraView;
@@ -32,6 +28,13 @@ import java.util.List;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
+
+import static com.blood.opengldemo.camera_filter.base.FilterConfig.FILTER_CAMERA;
+import static com.blood.opengldemo.camera_filter.base.FilterConfig.FILTER_CAMERA_ADAPT;
+import static com.blood.opengldemo.camera_filter.base.FilterConfig.FILTER_SCREEN;
+import static com.blood.opengldemo.camera_filter.base.FilterConfig.FILTER_SOUL;
+import static com.blood.opengldemo.camera_filter.base.FilterConfig.FILTER_SPLIT2;
+import static com.blood.opengldemo.camera_filter.base.FilterConfig.FILTER_WARM;
 
 /**
  * 预览拉伸的问题，应该是本身图片撑不满全屏，然后渲染全屏后拉伸
@@ -50,7 +53,7 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
     private final float[] mTextureMatrix = new float[16];
     private MediaRecorder mMediaRecorder;
     private H264MediaRecorder mH264MediaRecorder;
-    private final List<BaseFilter> mFilters = new ArrayList<>();
+    private final List<FilterConfig> mFilters = new ArrayList<>();
     private boolean mIsOutH264;
     private boolean mIsSoulFilterOpen;
     private boolean mIsSplit2FilterOpen;
@@ -89,26 +92,13 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
     }
 
     private void initFilters() {
-        //滤镜
-        CameraFilter cameraFilter = new CameraFilter(mContext);
-        //滤镜
-        CameraAdaptFilter cameraAdaptFilter = new CameraAdaptFilter(mContext);
-        //暖色滤镜
-        WarmFilter warmFilter = new WarmFilter(mContext);
-        //分屏2个
-        Split2Filter split2Filter = new Split2Filter(mContext);
-        //灵魂出窍
-        SoulFilter soulFilter = new SoulFilter(mContext);
-        //将数据渲染到屏幕
-        ScreenFilter screenFilter = new ScreenFilter(mContext);
-        //过滤集合
         mFilters.clear();
-        mFilters.add(cameraFilter);
-        mFilters.add(cameraAdaptFilter);
-        mFilters.add(warmFilter);
-        mFilters.add(split2Filter);
-        mFilters.add(soulFilter);
-        mFilters.add(screenFilter);
+        mFilters.add(new FilterConfig(mContext, FILTER_CAMERA, !mIsAdaptFilterOpen));
+        mFilters.add(new FilterConfig(mContext, FILTER_CAMERA_ADAPT, mIsAdaptFilterOpen));
+        mFilters.add(new FilterConfig(mContext, FILTER_WARM, true));
+        mFilters.add(new FilterConfig(mContext, FILTER_SPLIT2, mIsSplit2FilterOpen));
+        mFilters.add(new FilterConfig(mContext, FILTER_SOUL, mIsSoulFilterOpen));
+        mFilters.add(new FilterConfig(mContext, FILTER_SCREEN, true));
     }
 
     private void initMediaRecorder() {
@@ -160,8 +150,8 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
 //        mCameraFilter.onSizeChanged(width, height);
 //        mRecordFilter.onSizeChanged(width, height);
 
-        for (BaseFilter filter : mFilters) {
-            filter.onSizeChanged(width, height);
+        for (FilterConfig filterConfig : mFilters) {
+            filterConfig.onSizeChanged(width, height);
         }
     }
 
@@ -199,23 +189,15 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
 //        texture = mRecordFilter.onDraw(texture);
 
         int texture = mTextures[0];
-        for (BaseFilter filter : mFilters) {
+        for (FilterConfig filterConfig : mFilters) {
+            BaseFilter filter = filterConfig.getFilter();
             if (filter instanceof CameraFilter) {
                 ((CameraFilter) filter).setTransformMatrix(mMtx);
             } else if (filter instanceof CameraAdaptFilter) {
                 ((CameraAdaptFilter) filter).setVertexMatrix(mVertexMatrix);
                 ((CameraAdaptFilter) filter).setTextureMatrix(mTextureMatrix);
             }
-            if (filter instanceof CameraFilter && mIsAdaptFilterOpen) {
-                continue;
-            } else if (filter instanceof CameraAdaptFilter && !mIsAdaptFilterOpen) {
-                continue;
-            } else if (filter instanceof SoulFilter && !mIsSoulFilterOpen) {
-                continue;
-            } else if (filter instanceof Split2Filter && !mIsSplit2FilterOpen) {
-                continue;
-            }
-            texture = filter.onDraw(texture);
+            texture = filterConfig.onDraw(texture);
         }
 
         // 录制，还是fbo的图层，主动调用opengl方法，必须是在egl环境下，即glthread
@@ -284,15 +266,30 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
         mIsOutH264 = isOutH264;
     }
 
+    private void toggle(int id, boolean isOpen) {
+        // 切换到gl线程
+        mCameraView.queueEvent(() -> {
+            for (FilterConfig filterConfig : mFilters) {
+                if (filterConfig.getId() == id) {
+                    filterConfig.toggle(isOpen);
+                }
+            }
+        });
+    }
+
     public void toggleSoulFilter() {
         mIsSoulFilterOpen = !mIsSoulFilterOpen;
+        toggle(FILTER_SOUL, mIsSoulFilterOpen);
     }
 
     public void toggleSplit2Filter() {
         mIsSplit2FilterOpen = !mIsSplit2FilterOpen;
+        toggle(FILTER_SPLIT2, mIsSplit2FilterOpen);
     }
 
     public void toggleAdaptFilter() {
         mIsAdaptFilterOpen = !mIsAdaptFilterOpen;
+        toggle(FILTER_CAMERA, !mIsAdaptFilterOpen);
+        toggle(FILTER_CAMERA_ADAPT, mIsAdaptFilterOpen);
     }
 }
