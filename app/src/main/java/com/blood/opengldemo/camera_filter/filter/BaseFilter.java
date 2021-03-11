@@ -31,8 +31,8 @@ public abstract class BaseFilter {
     };
 
 //    private float[] mtx;
-    private int mWidth;
-    private int mHeight;
+    protected int mWidth;
+    protected int mHeight;
     private final FloatBuffer mVertexBuffer;
     private final FloatBuffer mTextureBuffer;
     protected final int mProgram;

@@ -29,6 +29,7 @@ import java.util.List;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import static com.blood.opengldemo.camera_filter.base.FilterConfig.FILTER_BEAUTY;
 import static com.blood.opengldemo.camera_filter.base.FilterConfig.FILTER_CAMERA;
 import static com.blood.opengldemo.camera_filter.base.FilterConfig.FILTER_CAMERA_ADAPT;
 import static com.blood.opengldemo.camera_filter.base.FilterConfig.FILTER_SCREEN;
@@ -96,6 +97,7 @@ public class CameraRenderer implements GLSurfaceView.Renderer, Preview.OnPreview
         mFilters.add(new FilterConfig(mContext, FILTER_CAMERA, !mIsAdaptFilterOpen));
         mFilters.add(new FilterConfig(mContext, FILTER_CAMERA_ADAPT, mIsAdaptFilterOpen));
         mFilters.add(new FilterConfig(mContext, FILTER_WARM, true));
+        mFilters.add(new FilterConfig(mContext, FILTER_BEAUTY, true));
         mFilters.add(new FilterConfig(mContext, FILTER_SPLIT2, mIsSplit2FilterOpen));
         mFilters.add(new FilterConfig(mContext, FILTER_SOUL, mIsSoulFilterOpen));
         mFilters.add(new FilterConfig(mContext, FILTER_SCREEN, true));

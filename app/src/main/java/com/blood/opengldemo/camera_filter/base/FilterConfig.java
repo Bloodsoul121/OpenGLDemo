@@ -3,6 +3,7 @@ package com.blood.opengldemo.camera_filter.base;
 import android.content.Context;
 
 import com.blood.opengldemo.camera_filter.filter.BaseFilter;
+import com.blood.opengldemo.camera_filter.filter.BeautyFilter;
 import com.blood.opengldemo.camera_filter.filter.CameraAdaptFilter;
 import com.blood.opengldemo.camera_filter.filter.CameraFilter;
 import com.blood.opengldemo.camera_filter.filter.ScreenFilter;
@@ -18,6 +19,7 @@ public class FilterConfig {
     public static final int FILTER_SPLIT2 = 3;//分屏2个
     public static final int FILTER_SOUL = 4;//灵魂出窍
     public static final int FILTER_SCREEN = 5;//将数据渲染到屏幕
+    public static final int FILTER_BEAUTY = 6;//美颜
 
     private final Context mContext;
     private final int mId;
@@ -84,6 +86,9 @@ public class FilterConfig {
                 break;
             case FILTER_SCREEN:
                 filter = new ScreenFilter(mContext);
+                break;
+            case FILTER_BEAUTY:
+                filter = new BeautyFilter(mContext);
                 break;
             default:
                 filter = null;
