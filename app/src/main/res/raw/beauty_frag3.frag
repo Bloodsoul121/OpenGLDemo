@@ -57,14 +57,32 @@ void main(){
     highPassColor.b = clamp(2.0 * highPassColor.b * highPassColor.b * 24.0, 0.0, 1.0);
     vec4 highPassBlur = vec4(highPassColor.rgb, 1.0);
 
-    //突出细节，90%的地方都是黑色的
+    // 突出细节，就是轮廓，尽量原图，90%的地方都是黑色的，就使劲高斯模糊
     //    gl_FragColor = highPassBlur;
 
+    // 相比其他通道，蓝通道能更多的还原本图
+    // 1.细节点不需要模糊
+    // 2.需要模糊的地方，就是对大块黑色的地方进行模糊
+
+    // 蓝色通道  作为    参考  叠加
+    // 两个颜色  原图颜色     高斯模糊的颜色
+    // 细节点的值较高，需要模糊的地方的值更小，因为黑色，相当于#000000
     float b = min(currentColor.b, blur.b);
+    // 线性叠加  (b - 0.2) * 5.0
     float value = clamp((b - 0.2) * 5.0, 0.0, 1.0);
+    // 取rgb的最大值  蓝色的值取出来 保留细节 细节点颜色比较深
+    // 高反差点越大，maxChannelColor越大，也就是细节的点越大
     float maxChannelColor = max(max(highPassBlur.r, highPassBlur.g), highPassBlur.b);
+    // 磨皮程度
     float intensity = 1.0;
+    //细节的地方->不融合，痘印的地方->使劲融合
+    //系数
+    //currentIntensity 细节的地方->值越小，痘印的地方->黑色的地方->值越大
     float currentIntensity = (1.0 - maxChannelColor / (maxChannelColor + 0.2)) * value * intensity;
+    // 线性融合
+    // x⋅(1−a)+y⋅a    a=0  保留  原图     1  高斯模糊图  2
+    // 例如 [255,0 , 0] * (1−a) + [56,0 , 0] *a
+    //模糊，currentIntensity越大，blur.rgb就越大，高斯模糊程度就越高
     vec3 r = mix(currentColor.rgb, blur.rgb, currentIntensity);
     gl_FragColor = vec4(r, 1.0);
 
